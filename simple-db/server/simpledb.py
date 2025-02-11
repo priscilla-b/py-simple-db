@@ -2,6 +2,7 @@ import os
 import logging
 from pathlib import Path
 from file.file_manager import FileManager
+from log.log_manager import LogManager
 
 
 
@@ -22,4 +23,5 @@ class SimpleDB:
         self.db_directory = Path(dirname)
         self.db_directory.mkdir(parents=True, exist_ok=True)
         
-        self.file_mgr = FileManager(self.db_directory, block_size)
+        self.file_manager = FileManager(self.db_directory, block_size)
+        self.log_manager = LogManager(self.file_manager, self.LOG_FILE)
