@@ -3,6 +3,7 @@ import logging
 from pathlib import Path
 from file.file_manager import FileManager
 from log.log_manager import LogManager
+from buffer.buffer_manager import BufferManager
 
 
 
@@ -25,3 +26,4 @@ class SimpleDB:
         
         self.file_manager = FileManager(self.db_directory, block_size)
         self.log_manager = LogManager(self.file_manager, self.LOG_FILE)
+        self.buffer_manager = BufferManager(buffer_size, self.file_manager, self.log_manager)
