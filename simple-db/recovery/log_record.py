@@ -3,6 +3,8 @@ from abc import ABC, abstractmethod
 from transaction import Transaction
 from file.page import Page
 
+from .checkpoint_record import CheckpointRecord
+
 class LogRecord(ABC):
     CHECKPOINT  = 0
     START = 1
