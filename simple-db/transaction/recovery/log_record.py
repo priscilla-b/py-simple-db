@@ -4,6 +4,9 @@ from transaction import Transaction
 from file.page import Page
 
 from .checkpoint_record import CheckpointRecord
+from .start_record import StartRecord
+from .commit_record import CommitRecord
+from .rollback_record import RollbackRecord
 
 class LogRecord(ABC):
     CHECKPOINT  = 0
@@ -47,7 +50,13 @@ class LogRecord(ABC):
         page = Page(byte_array=bytes)
         
         match page.get_int(offset=0):
-            case CHECKPOINT:
+            case self.CHECKPOINT:
                 return CheckpointRecord(page)
+            case self.START:
+                return StartRecord(page)
+            case self.COMMIT:
+                return CommitRecord(page)
+            case self.ROLLBACK:
+                return RollbackRecord(page)
         
         
