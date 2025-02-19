@@ -7,6 +7,8 @@ from .checkpoint_record import CheckpointRecord
 from .start_record import StartRecord
 from .commit_record import CommitRecord
 from .rollback_record import RollbackRecord
+from .set_int_record import SetIntRecord
+from .set_string_record import SetStringRecord
 
 class LogRecord(ABC):
     CHECKPOINT  = 0
@@ -58,5 +60,9 @@ class LogRecord(ABC):
                 return CommitRecord(page)
             case self.ROLLBACK:
                 return RollbackRecord(page)
+            case self.SETINT:
+                return SetIntRecord(page)
+            case self.SETSTRING:
+                return SetStringRecord(page)
         
         
