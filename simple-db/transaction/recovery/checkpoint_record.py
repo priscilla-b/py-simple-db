@@ -25,7 +25,8 @@ class CheckpointRecord(LogRecord):
         """
         A static method to write a checkpoint record to the log.
         This log record contains the checkpoint operator, and nothing else.
-        :return : the LSN of the last log value
+        
+        :return: the LSN of the last log value
         """
         rec = bytearray(4)
         page = Page(rec)
