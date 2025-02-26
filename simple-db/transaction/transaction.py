@@ -1,3 +1,5 @@
+from .recovery.recovery_manager import RecoveryManager
+
 
 class Transaction:
     def __init__(self, file_manager, log_manager, buffer_manager):
@@ -17,7 +19,10 @@ class Transaction:
         self.file_manager = file_manager
         self.log_manager = log_manager
         self.buffer_manager = buffer_manager
-        self.tx_num = self.next_tx_number()
+        
+        tx_num = self.next_tx_number()
+        recovery_manager = RecoveryManager(self, tx_num, log_manager, buffer_manager)
+        
         pass
     
     def next_tx_number(self):
