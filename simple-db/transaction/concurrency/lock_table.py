@@ -1,3 +1,4 @@
+import threading
 import time
 
 class LockTable:
@@ -15,6 +16,7 @@ class LockTable:
     
     def __init__(self):
         self.locks = {}
+        self.condition = threading.Condition(self.lock)  # Condition variable
     
     
     def s_lock(self, block):
@@ -28,7 +30,7 @@ class LockTable:
         
         try:
             timestamp = int(time.time() * 1000)  # converts from seconds to milliseconds
-            while self.has_x_lock(block) and not self.wating_too_long(timestamp):
+            while self.has_x_lock(block) and not self.waiting_too_long(timestamp):
                 time.sleep(self.MAX_TIME)
                 
             if self.has_x_lock(block):
@@ -65,3 +67,30 @@ class LockTable:
             raise RuntimeError()
         
     
+    def unlock(self, block):
+        """
+        Release a lock on the specified block.
+        If it's the last lock on the block, then the waiting 
+        transactions are notified.
+        :param block: references the disk block
+        """
+        
+        val = self.get_lock_val(block)
+        if val > 1:
+            self.lock[block] = val - 1
+        else:
+            self.locks.pop(block, None)
+            self.condition.notify_all()
+            
+    
+    def has_x_lock(self, block):
+        return self.get_lock_val(block) < 0
+    
+    def has_other_s_locks(self, block):
+        return self.get_lock_val(block) > 1
+    
+    def waiting_too_long(self, start_time):
+        return int(time.time()*1000) - start_time > self.MAX_TIME
+    
+    def get_lock_val(self, block):
+        return self.locks.get(block, 0)
