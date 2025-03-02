@@ -1,4 +1,5 @@
 from .recovery.recovery_manager import RecoveryManager
+from .concurrency.concurrency_manager import ConcurrencyManager
 
 
 class Transaction:
@@ -17,11 +18,12 @@ class Transaction:
         called first.
         """
         self.file_manager = file_manager
-        self.log_manager = log_manager
         self.buffer_manager = buffer_manager
         
         tx_num = self.next_tx_number()
         recovery_manager = RecoveryManager(self, tx_num, log_manager, buffer_manager)
+        concurrency_mgr = ConcurrencyManager()
+        # my_buffers = 
         
         pass
     
