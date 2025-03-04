@@ -1,5 +1,6 @@
 from .recovery.recovery_manager import RecoveryManager
 from .concurrency.concurrency_manager import ConcurrencyManager
+from .buffer_list import BufferList
 
 
 class Transaction:
@@ -21,11 +22,22 @@ class Transaction:
         self.buffer_manager = buffer_manager
         
         tx_num = self.next_tx_number()
-        recovery_manager = RecoveryManager(self, tx_num, log_manager, buffer_manager)
-        concurrency_mgr = ConcurrencyManager()
-        # my_buffers = 
+        self.recovery_manager = RecoveryManager(self, tx_num, log_manager, buffer_manager)
+        self.concurrency_mgr = ConcurrencyManager()
+        self.my_buffers = BufferList(buffer_manager)
         
-        pass
+    
+    def commit(self):
+        """
+        Commits the current transaction.
+        Flushes all modified buffers, writes a commit record to the log,
+        release all locks, and unpin any pinned buffers
+        """
+        self.recovery_manager.commit()
+        print(f"Transaction {self.tx_num} committed")
+        self.concurrency_mgr.release()
+        self.my_buffers.unpin_all()
+        
     
     def next_tx_number(self):
         """
