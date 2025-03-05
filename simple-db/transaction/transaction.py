@@ -39,6 +39,60 @@ class Transaction:
         self.my_buffers.unpin_all()
         
     
+    def rollback(self):
+        """
+        Rolls back the current transaction.
+        Undoes any changes to the buffers, writes a rollback record to the log,
+        release all locks, and unpin any pinned buffers
+        """
+        self.recovery_manager.rollback()
+        print(f"Transaction {self.tx_num} rolled back")
+        self.concurrency_mgr.release()
+        self.my_buffers.unpin_all()
+        
+    def recover(self):
+        """
+        Flush all modified buffers, then go through the log
+        and roll back all uncommitted transactions. Finally, 
+        write a quiescent checkpoint record to the log.
+        Called during systems startup, before user transactions begins
+        """
+        self.buffer_manager.flush_all(self.tx_num)
+        self.recovery_manager.recover() 
+        
+    def pin(self, block):
+        """
+        Pins the specified block.
+        The transaction manages the buffer internally.
+        
+        :param block: a reference to the disk block
+        """
+        self.my_buffers.pin(block)
+        
+    def unpin(self, block):
+        """
+        Unpins the specified block.
+        The transaction looks up the buffer pinned to this
+        block and unpins it.
+        
+        :param block: a reference to the disk block
+        """
+        self.my_buffers.unpin(block)    
+    
+    def get_int(self, block, offset):
+        """
+        Returns the integer value at the specified offset of the specified block.
+        This method first obtains an SLock on the block, then calls the buffer
+        to retrieve the value.
+        
+        :param block: a reference to the disk block
+        :param offset: the byte offset within the block
+        """
+        self.concurrency_mgr.s_lock(block)
+        buff = self.my_buffers.get_buffer(block)
+        return buff.get_int(offset) 
+
+    
     def next_tx_number(self):
         """
         Returns the next transaction number.
