@@ -1,6 +1,9 @@
+from file.block_id import BlockId
+
 from .recovery.recovery_manager import RecoveryManager
 from .concurrency.concurrency_manager import ConcurrencyManager
 from .buffer_list import BufferList
+
 
 
 class Transaction:
@@ -91,7 +94,82 @@ class Transaction:
         self.concurrency_mgr.s_lock(block)
         buff = self.my_buffers.get_buffer(block)
         return buff.get_int(offset) 
+    
+    
+    def get_string(self, block, offset):
+        """
+        Returns the string value at the specified offset of the specified block.
+        This method first obtains an SLock on the block, then calls the buffer
+        to retrieve the value.
+        
+        :param block: a reference to the disk block
+        :param offset: the byte offset within the block
+        """ 
+        self.concurrency_mgr.s_lock(block)
+        buff = self.my_buffers.get_buffer(block)
+        return buff.get_string(offset)
 
+    def set_int(self, block, offset, val):
+        """
+        Store the integer value at the specified offset of the specified block.
+        This method first obtains an XLock on the block, then reads the current value
+        at that offset, puts it into an update log record, and writes that
+        record to the log.
+        Finally, it calls the buffer to store the value, passing in the LSN
+        of the log record and the transaction's id.
+        
+        :param block: a reference to the disk block
+        :param offset: a byte offset within that block
+        :param val: the value to be stored
+        
+        """
+        self.concurrency_mgr.x_lock(block)
+        buff = self.my_buffers.get_buffer(block)
+        lsn = -1
+        if(self.ok_to_log):
+            lsn = self.recovery_manager.set_int(block, offset, val)
+        
+        p = buff.contents()
+        p.set_int(offset, val)
+        buff.set_modified(self.tx_num, lsn)
+        
+    def set_string(self, block, offset, val):
+        """"
+        Store a string at the specified offset of the specified block.
+        This method first obtains an XLock on the block, then reads the current value
+        at that offset, puts it into an update log record, and writes that
+        record to the log.
+        Finally, it calls the buffer to store the value, passing in the LSN
+        of the log record and the transaction's id.
+        
+        :param block: a reference to the disk block
+        :param offset: a byte offset within that block
+        :param val: the value to be stored
+        """
+        
+        self.concurrency_mgr.x_lock(block)
+        buff = self.my_buffers.get_buffer(block)
+        lsn = -1
+        if(self.ok_to_log):
+            lsn = self.recovery_manager.set_string(block, offset, val)
+        
+        p = buff.contents()
+        p.set_string(offset, val)
+        buff.set_modified(self.tx_num, lsn)
+    
+    def size(self, filename):
+        """
+        Append a new block to the end of the specified file and return
+        a reference to it.
+        This method first obtains an XLock on the end of the file, 
+        before performing the append.
+
+        :param filename: the name of the file
+        :return: a reference to the newly-created disk block
+        """
+        dummy_block = BlockId(filename(), -1)
+        self.concurrency_mgr.x_lock(dummy_block)
+        return self.file_manager.length(filename)
     
     def next_tx_number(self):
         """
