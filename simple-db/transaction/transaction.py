@@ -171,6 +171,27 @@ class Transaction:
         self.concurrency_mgr.x_lock(dummy_block)
         return self.file_manager.length(filename)
     
+    
+    def append(self, filename):
+        """
+        Append a new block to the end of the specified file and return
+        a reference to it.
+        This method first obtains an XLock on the end of the file, 
+        before performing the append.
+
+        :param filename: the name of the file
+        :return: a reference to the newly-created disk block
+        """
+        dummy_block = BlockId(filename(), -1)
+        self.concurrency_mgr.x_lock(dummy_block)
+        return self.file_manager.append(filename)
+    
+    def block_size(self):
+        return self.file_manager.block_size()
+    
+    def available_buffers(self):
+        return self.buffer_manager.available()
+    
     def next_tx_number(self):
         """
         Returns the next transaction number.
