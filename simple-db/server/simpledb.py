@@ -4,6 +4,9 @@ from pathlib import Path
 from file.file_manager import FileManager
 from log.log_manager import LogManager
 from buffer.buffer_manager import BufferManager
+from transaction.transaction import Transaction
+from transaction.recovery.recovery_manager import RecoveryManager
+
 
 
 
@@ -27,3 +30,19 @@ class SimpleDB:
         self.file_manager = FileManager(self.db_directory, block_size)
         self.log_manager = LogManager(self.file_manager, self.LOG_FILE)
         self.buffer_manager = BufferManager(buffer_size, self.file_manager, self.log_manager)
+        
+        tx = self.new_tx()
+        is_new = self.file_manager.is_new()
+        if is_new:
+            print("Creating new database")
+        else:
+            print("Recovering existing database")
+            tx.recover()
+   
+        
+        
+    def new_tx(self) -> Transaction:
+        """
+        Creates a new transaction.
+        """
+        return Transaction(self.file_manager, self.buffer_manager, self.log_manager)
