@@ -54,6 +54,55 @@ class Schema:
         length = schema.length(fieldname)
         self.add_field(fieldname, _type, length)
         
+    
+    def add_all(self, schema):
+        """
+        Add all fields in the specified schema to this schema
+
+        Args:
+            schema (Schema): the other schema
+        """
+        for field_name in schema.fields:
+            self.add(field_name, schema)
+            
+    @property
+    def fields(self):
+        """
+        Return a collection containing the names 
+        of all fields in the schema
+
+        :return: a collection of the schema's field names
+        """
+        return self.fields
+    
+    def has_field(self, field_name):
+        """
+        Check if the schema has a field with the specified name
+
+        :param field_name: the name of the field
+        :return: True if the schema has a field with the specified name, False otherwise
+        """
+        return field_name in self.fields
+    
+    @property
+    def _type(self, field_name):
+        """
+        Return the type of the specified field
+
+        :param field_name: the name of the field
+        :return: the type of the field
+        """
+        return self.info[field_name].field_type
+    
+    @property
+    def length(self, field_name):
+        """
+        Return the length of the specified field
+
+        :param field_name: the name of the field
+        :return: the length of the field
+        """
+        return self.info[field_name].length
         
 
 class FieldInfo:
